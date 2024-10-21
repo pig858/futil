@@ -9,9 +9,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const VERSION = "0.0.1"
+
 var rootCmd = &cobra.Command{
-	Use:   "futil",
-	Short: "brief description",
+	Use:     "futil",
+	Short:   "brief description",
+	Version: VERSION,
 }
 
 func Execute() {
