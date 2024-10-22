@@ -20,35 +20,34 @@ var checksumCmd = &cobra.Command{
 	Short: "return the checksum of the file",
 	Run: func(cmd *cobra.Command, args []string) {
 		fname, _ := cmd.Flags().GetString("file")
+		r := cmd.InOrStdin()
 
-		if fname == "" {
-			fmt.Println("Please provide a file using -f or --file")
-			return
+		if fname != "-" {
+			f, err := os.Open(fname)
+			if err != nil {
+				fmt.Printf("Error opening file: %v\n", err)
+				return
+			}
+			defer f.Close()
+			r = f
 		}
-
-		f, err := os.Open(fname)
-		if err != nil {
-			fmt.Printf("Error opening file: %v\n", err)
-			return
-		}
-		defer f.Close()
 
 		h := ""
 		var calcErr error
 
 		if md5Flag, _ := cmd.Flags().GetBool("md5"); md5Flag {
-			h, calcErr = calcMD5(f)
+			h, calcErr = calcMD5(r)
 		} else if sha1Flag, _ := cmd.Flags().GetBool("sha1"); sha1Flag {
-			h, calcErr = calcSha1(f)
+			h, calcErr = calcSha1(r)
 		} else if sha256Flag, _ := cmd.Flags().GetBool("sha256"); sha256Flag {
-			h, calcErr = calcSha256(f)
+			h, calcErr = calcSha256(r)
 		} else {
 			fmt.Println("Please use md5, sha1 or sha256")
 			return
 		}
 
 		if calcErr != nil {
-			fmt.Printf("Error calculating checksum: %v\n", err)
+			fmt.Printf("Error calculating checksum: %v\n", calcErr)
 			return
 		}
 
@@ -65,27 +64,27 @@ func init() {
 	checksumCmd.Flags().Bool("sha256", false, "sha256 checksum")
 }
 
-func calcMD5(f *os.File) (string, error) {
+func calcMD5(r io.Reader) (string, error) {
 	h := md5.New()
-	if _, err := io.Copy(h, f); err != nil {
+	if _, err := io.Copy(h, r); err != nil {
 		return "", err
 	}
 
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
-func calcSha1(f *os.File) (string, error) {
+func calcSha1(r io.Reader) (string, error) {
 	h := sha1.New()
-	if _, err := io.Copy(h, f); err != nil {
+	if _, err := io.Copy(h, r); err != nil {
 		return "", err
 	}
 
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
-func calcSha256(f *os.File) (string, error) {
+func calcSha256(r io.Reader) (string, error) {
 	h := sha256.New()
-	if _, err := io.Copy(h, f); err != nil {
+	if _, err := io.Copy(h, r); err != nil {
 		return "", err
 	}
 

@@ -14,19 +14,19 @@ var lineCountCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fname, _ := cmd.Flags().GetString("file")
 
-		if fname == "" {
-			fmt.Println("Please provide a file using -f or --file")
-			return
+		r := cmd.InOrStdin()
+
+		if fname != "-" {
+			f, err := os.Open(fname)
+			if err != nil {
+				fmt.Printf("Error opening file: %v\n", err)
+				return
+			}
+			defer f.Close()
+			r = f
 		}
 
-		f, err := os.Open(fname)
-		if err != nil {
-			fmt.Printf("Error opening file: %v\n", err)
-			return
-		}
-		defer f.Close()
-
-		scanner := bufio.NewScanner(f)
+		scanner := bufio.NewScanner(r)
 		c := 0
 
 		for scanner.Scan() {
