@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const VERSION = "0.0.1"
+const VERSION = "v0.0.1"
 
 var rootCmd = &cobra.Command{
 	Use:     "futil",
