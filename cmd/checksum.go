@@ -7,8 +7,10 @@ import (
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -23,6 +25,22 @@ var checksumCmd = &cobra.Command{
 		r := cmd.InOrStdin()
 
 		if fname != "-" {
+			info, err := os.Stat(fname)
+			if err != nil {
+				if errors.Is(err, fs.ErrNotExist) {
+					fmt.Printf("error: No such file '%s'", fname)
+					return
+				} else {
+					fmt.Println("Error checking file ", err)
+					return
+				}
+			}
+
+			if info.IsDir() {
+				fmt.Printf("error: Expected file got directory '%s'", fname)
+				return
+			}
+
 			f, err := os.Open(fname)
 			if err != nil {
 				fmt.Printf("Error opening file: %v\n", err)
